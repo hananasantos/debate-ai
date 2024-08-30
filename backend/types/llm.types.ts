@@ -51,7 +51,7 @@ export abstract class LLM {
     // setup system prompt
     this.topic = topic;
     this.debaterId = debaterId;
-    this.systemPrompt = `You are participating in a debate as Debator ${debaterId}
+    this.systemPrompt = `You are participating in a debate as Debater ${debaterId} and are not moderating.
     The debate topic:
     ${topic}
 
@@ -60,6 +60,8 @@ export abstract class LLM {
 
     Your personality:
     ${personality}
+    
+    Please keep your answers to plain text.
     `;
   }
 

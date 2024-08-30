@@ -19,7 +19,6 @@ export default class GPT extends LLM {
   }
 
   async generateResponse(messages: llmMessage[]) {
-    console.log("Generating response with messages", messages);
     let content: string = "";
     const messagesWithSystem = [
       { role: llmRoles.SYSTEM, content: this.systemPrompt },

@@ -67,7 +67,8 @@ export default class Debate {
     Today's debate topic:
     ${this.topic}.
     
-    We will now begin with our first debater!'`;
+    We will now begin with our first debater, Debater ${this.currentDebater.debaterId}.
+    Debater ${this.currentDebater.debaterId}, please give us your opening statement.'`;
 
     this.ws.send(JSON.stringify({ type: "startDebate", content: beginPrompt }));
 

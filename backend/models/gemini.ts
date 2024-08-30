@@ -19,15 +19,10 @@ export default class GEMINI extends LLM {
   }
 
   private prepHistory(messages: llmMessage[]) {
-    const systemMessage = {
-      role: llmRoles.SYSTEM,
-      parts: [{ text: this.systemPrompt }],
-    };
-    let history = messages.map((message) => ({
+    return messages.map((message) => ({
       role: message.role,
       parts: [{ text: message.content }],
     }));
-    return [systemMessage, ...history];
   }
 
   async generateResponse(messages: llmMessage[]): Promise<string> {
@@ -66,7 +61,14 @@ export default class GEMINI extends LLM {
         newMessage.content
       );
       for await (const chunk of geminiResponse.stream) {
-        response += chunk.text();
+        const text = chunk.text();
+        this.ws.send(
+          JSON.stringify({
+            type: "answerStream",
+            content: text,
+          })
+        );
+        response += text;
       }
       this.ws.send(
         JSON.stringify({
@@ -76,8 +78,13 @@ export default class GEMINI extends LLM {
       );
     } catch (error) {
       console.error(error);
+      this.ws.send(
+        JSON.stringify({
+          type: "endStream",
+          content: { debaterId: this.debaterId },
+        })
+      );
     }
-
     return response;
   }
 }

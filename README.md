@@ -13,9 +13,9 @@ A random thing
 
   **Frontend**
 
-- [ ] make debater siders prettier, and fix the sider/llmsider parent child relationship
+- [ ] make debater siders prettier
 - [ ] somehow highlight the current debater
-- [ ] change homepage footer to powered by XX
+- [x] change homepage footer to powered by XX
 
 ## Potential Additions
 

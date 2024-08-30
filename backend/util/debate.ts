@@ -3,7 +3,8 @@ import { llmMessage, llmRoles } from "../types/llm.types";
 
 export function prepDebateHistory(
   debateHistory: DebateMessage[],
-  debaterId: number
+  debaterId: number,
+  responseRole: llmRoles
 ) {
   let finalLlmMessages: llmMessage[] = [];
   let tempMessageContent = "";
@@ -20,7 +21,7 @@ export function prepDebateHistory(
         tempMessageContent = ""; // Reset the temporary message content
       }
       finalLlmMessages.push({
-        role: llmRoles.ASSISTANT,
+        role: responseRole,
         content: currentMessage.llmMessage.content,
       });
       console.log("Assistant response: ", currentMessage.llmMessage.content);

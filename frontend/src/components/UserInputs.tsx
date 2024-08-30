@@ -36,10 +36,10 @@ export function LlmInput({
   index,
 }: LlmInputProps) {
   const handleModelChange = (value: string) => {
-    if (value === "gpt") {
-      changeModel("gpt-4o");
+    if (["gpt", "claude", "gemini"].includes(value)) {
+      changeModel(value);
     } else {
-      changeModel("claude-3-opus-20240229");
+      changeModel("gpt");
     }
   };
   return (
@@ -53,6 +53,10 @@ export function LlmInput({
           {
             label: "claude",
             value: "claude",
+          },
+          {
+            lable: "gemini",
+            value: "gemini",
           },
         ]}
         style={{ width: "20%" }}

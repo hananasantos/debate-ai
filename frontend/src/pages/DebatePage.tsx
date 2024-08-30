@@ -196,15 +196,17 @@ export default function DebatePage({ ws }: { ws: WebSocket }) {
             {streaming === true && (
               <Typography>{textToHtmlLinebreaks(debateStream)}</Typography>
             )}
-            {setupStatus === "Success" && debateHistory.length > 0 && (
-              <Button
-                type="primary"
-                onClick={handleNextDebateMessage}
-                style={{ background: "#8D9575" }}
-              >
-                Next Debater
-              </Button>
-            )}
+            {setupStatus === "Success" &&
+              debateHistory.length > 0 &&
+              !streaming && (
+                <Button
+                  type="primary"
+                  onClick={handleNextDebateMessage}
+                  style={{ background: "#8D9575" }}
+                >
+                  Next Debater
+                </Button>
+              )}
           </Content>
         </Layout>
         <Sider

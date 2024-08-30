@@ -40,7 +40,11 @@ export default class Debate {
     console.log("Advancing LLM: ", llm.model, " with prompt: ", next);
     this.debateHistory.push(next);
     // prepare debate history into llm messages
-    const llmMessages = prepDebateHistory(this.debateHistory, llm.debaterId);
+    const llmMessages = prepDebateHistory(
+      this.debateHistory,
+      llm.debaterId,
+      llm.responseRole
+    );
 
     // generate response
     const responseContent = await llm.generateResponse(llmMessages);

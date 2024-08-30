@@ -32,7 +32,25 @@ export default class GPT extends LLM {
       })
     );
     const stream = await this.openAiClient.chat.completions.create({
-      messages: messagesWithSystem,
+      messages: messagesWithSystem.map((message) => {
+        if (
+          message.role === llmRoles.USER ||
+          message.role === llmRoles.ASSISTANT ||
+          message.role === llmRoles.SYSTEM
+        ) {
+          return {
+            role: message.role,
+            content: message.content,
+          };
+        } else if (message.role === llmRoles.MODEL) {
+          return {
+            role: llmRoles.ASSISTANT,
+            content: message.content,
+          };
+        } else {
+          throw new Error("Invalid role for GPT Message: " + message.role);
+        }
+      }),
       model: "gpt-4o",
       stream: true,
     });

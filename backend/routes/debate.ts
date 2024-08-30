@@ -1,10 +1,11 @@
 import { WSRoute } from "../types/ws.types";
 import Debate from "../controllers/debate";
-import GPT from "../services/gpt";
-import Claude from "../services/claude";
+import GPT from "../models/gpt";
+import Claude from "../models/claude";
+import Gemini from "../models/gemini";
 
-let llm1: GPT | Claude;
-let llm2: GPT | Claude;
+let llm1: GPT | Claude | Gemini;
+let llm2: GPT | Claude | Gemini;
 let debate: Debate;
 
 const setup: WSRoute = async (ws, message) => {
@@ -28,10 +29,14 @@ const setup: WSRoute = async (ws, message) => {
     llm1 =
       llm1Setup.llm === "gpt"
         ? new GPT(llm1Setup.stance, llm1Setup.personality, topic, ws, 1)
+        : llm1Setup.llm === "gemini"
+        ? new Gemini(llm1Setup.stance, llm1Setup.personality, topic, ws, 1)
         : new Claude(llm1Setup.stance, llm1Setup.personality, topic, ws, 1);
     llm2 =
       llm2Setup.llm === "gpt"
         ? new GPT(llm2Setup.stance, llm2Setup.personality, topic, ws, 2)
+        : llm2Setup.llm === "gemini"
+        ? new Gemini(llm2Setup.stance, llm2Setup.personality, topic, ws, 2)
         : new Claude(llm2Setup.stance, llm2Setup.personality, topic, ws, 2);
 
     const llm1Send = {

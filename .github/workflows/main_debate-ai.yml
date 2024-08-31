@@ -60,3 +60,4 @@ jobs:
           slot-name: 'Production'
           package: .
           publish-profile: ${{ secrets.azureWebAppPublishProfile }}
+          deployment-method: 'zipDeploy'

@@ -59,4 +59,4 @@ jobs:
           app-name: 'debate-ai'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C50DE482FE5540CCB90AC44233E45870 }}
+          publish-profile: ${{ secrets.azureWebAppPublishProfile }}

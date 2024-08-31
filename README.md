@@ -10,6 +10,7 @@ A random thing
 - [ ] Is there a better way to pass websocket around? Feel like i need to centralize `ws` more into the routes somehow
 - [ ] Check debate message passing from server to client. It needs cleaning because a debateMessage has a title that we never use but could pass to the client.
 - [ ] Finish READMEs
+- [ ] Why is stream from gpt getting cut off
 
   **Frontend**
 

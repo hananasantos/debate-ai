@@ -85,6 +85,13 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Prepare Deployment Package
+        run: |
+          mkdir deployment
+          cp -r ./backend/dist deployment/backend
+          cp -r ./frontend/dist deployment/frontend
+        working-directory: ${{ github.workspace }}
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:

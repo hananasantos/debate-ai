@@ -26,6 +26,7 @@ async function routeMessage(ws: WebSocket, message: WSMessage) {
 }
 
 async function main() {
+  console.log("Creating and starting WebSocket server...");
   const wss = new WebSocketServer({ port: 8080 });
 
   wss.on("listening", () => {

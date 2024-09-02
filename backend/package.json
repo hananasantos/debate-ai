@@ -1,8 +1,8 @@
 {
   "scripts": {
     "start": "./node_modules/typescript/bin/tsc && node ./dist/index.js",
-    "dev": "tsc --watch",
-    "build": "tsc -b"
+    "dev": "./node_modules/typescript/bin/tsc --watch",
+    "build": "./node_modules/typescript/bin/tsc -b"
   },
   "devDependencies": {
     "@types/ws": "^8.5.12",

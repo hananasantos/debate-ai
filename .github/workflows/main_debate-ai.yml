@@ -158,8 +158,9 @@ jobs:
       # Prepare deployment package
       - name: Prepare Deployment Package
         run: |
-          ls -alh
-          pwd
+          mkdir deployment
+          mkdir deployment/backend
+          mkdir deployment/frontend
           cp -r backend/dist deployment/backend
           cp -r frontend/dist deployment/frontend
 

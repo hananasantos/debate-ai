@@ -91,6 +91,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
+          path: "debate-ai"
 
       # Install dependencies for backend
       - name: Install Backend Dependencies
@@ -131,7 +132,6 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: "debate-ai"
           slot-name: "Production"
           publish-profile: ${{ secrets.azureWebAppPublishProfile }}
           package: ./deployment # Path to the deployment package

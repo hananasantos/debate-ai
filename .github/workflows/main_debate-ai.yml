@@ -85,13 +85,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Prepare Deployment Package
-        run: |
-          mkdir deployment
-          mkdir deployment/backend
-          mkdir deployment/frontend
-        working-directory: ${{ github.workspace }}
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -141,14 +134,10 @@ jobs:
       # Prepare deployment package
       - name: Prepare Deployment Package
         run: |
-          mkdir deployment
-          mkdir deployment/backend
-          mkdir deployment/frontend
-          ls
-          ls deployment
+          ls -alh
+          pwd
           cp -r backend/dist deployment/backend
           cp -r frontend/dist deployment/frontend
-          # Optionally, include other necessary files like package.json, etc.
 
       # Deploy to Azure Web App
       - name: Deploy to Azure Web App

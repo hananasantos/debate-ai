@@ -114,6 +114,12 @@ jobs:
         working-directory: ./frontend
         run: npm run build # Vite's build script
 
+      - name: List deployment contents
+        run: ls -alh
+
+      - name: List current directory
+        run: pwd
+
       - name: Upload Artifacts for Deployment
         uses: actions/upload-artifact@v4
         with:
@@ -127,11 +133,18 @@ jobs:
       name: "Production"
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     steps:
+      - name: List current directory
+        run: pwd
+
       - name: Download Artifacts from Build Job
         uses: actions/download-artifact@v4
         with:
           name: deployment-package
           run-id: ${{ github.event.workflow_run.id }}
+
+      # Now the deployment directory is available
+      - name: List downloaded contents
+        run: ls -alh
 
       # Prepare deployment package
       - name: Prepare Deployment Package

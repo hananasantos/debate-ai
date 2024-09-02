@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "node ./dist/index.js",
+    "start": "./node_modules/typescript/bin/tsc && node ./dist/index.js",
     "dev": "./node_modules/typescript/bin/tsc --watch",
     "build": "./node_modules/typescript/bin/tsc -b"
   },

@@ -109,10 +109,20 @@ jobs:
         working-directory: ./backend
         run: npm run build # Ensure you have a build script
 
+      # List output directory
+      - name: List output directory
+        run: ls -alh ./dist
+        working-directory: ./backend
+
       # Build the frontend
       - name: Build Frontend
         working-directory: ./frontend
         run: npm run build # Vite's build script
+
+      # List output directory
+      - name: List output directory
+        run: ls -alh ./dist
+        working-directory: ./frontend
 
   deploy:
     runs-on: ubuntu-latest

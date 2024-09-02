@@ -145,6 +145,7 @@ jobs:
           mkdir deployment/backend
           mkdir deployment/frontend
           ls
+          ls deployment
           cp -r backend/dist deployment/backend
           cp -r frontend/dist deployment/frontend
           # Optionally, include other necessary files like package.json, etc.

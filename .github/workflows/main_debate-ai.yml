@@ -88,8 +88,8 @@ jobs:
       - name: Prepare Deployment Package
         run: |
           mkdir deployment
-          cp -r ./backend/dist deployment/backend
-          cp -r ./frontend/dist deployment/frontend
+          mkdir deployment/backend
+          mkdir deployment/frontend
         working-directory: ${{ github.workspace }}
 
       - name: Setup Node

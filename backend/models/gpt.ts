@@ -138,7 +138,7 @@ export default class OpenAi extends LLM {
 
   public async generateResponseStream(
     messages: LlmMessage[],
-    stopFlag: { activated: boolean },
+    // stopFlag: { activated: boolean },
     model?: OpenAiModels | undefined
   ) {
     if (!LLM.ws) {
@@ -151,10 +151,10 @@ export default class OpenAi extends LLM {
     for await (const chunk of stream) {
       if (chunk.choices[0].delta.content) {
         const chunkContent = chunk.choices[0].delta.content;
-        if (stopFlag.activated) {
-          stopFlag.activated = false;
-          break;
-        }
+        // if (stopFlag.activated) {
+        //   stopFlag.activated = false;
+        //   break;
+        // }
         content += chunkContent;
         LLM.ws.send(
           JSON.stringify({

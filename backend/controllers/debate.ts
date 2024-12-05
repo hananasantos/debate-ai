@@ -1,25 +1,26 @@
-import { LLM, llmMessage, llmRoles } from "../types/llm.types";
+import { LLM, LlmMessage, LlmRoles } from "../types/llm.types";
+import Debater from "../agents/debater";
 import { WebSocket } from "ws";
 import { DebateMessage } from "../types/debate.types";
 import { prepDebateHistory } from "../util/debate";
 
 type DebateSetup = {
-  llm1: LLM;
-  llm2: LLM;
+  debater1: Debater;
+  debater2: Debater;
   topic: string;
 };
 
 export default class Debate {
-  private llm1: LLM;
-  private llm2: LLM;
+  private debater1: Debater;
+  private debater2: Debater;
   private topic: string;
-  private currentDebater: LLM;
+  private currentDebater: Debater;
   private ws: WebSocket;
   public debateHistory: DebateMessage[];
 
   constructor(setup: DebateSetup, ws: WebSocket) {
-    this.llm1 = setup.llm1;
-    this.llm2 = setup.llm2;
+    this.debater1 = setup.debater1;
+    this.debater2 = setup.debater2;
     this.topic = setup.topic;
     this.debateHistory = [];
     this.currentDebater = this.decideFirstDebater();
@@ -30,31 +31,31 @@ export default class Debate {
     const random = Math.random();
     console.log(
       "First debater: ",
-      random < 0.5 ? this.llm1.model : this.llm2.model
+      random < 0.5 ? this.debater1.llmType : this.debater2.llmType
     );
-    return random < 0.5 ? this.llm1 : this.llm2;
+    return random < 0.5 ? this.debater1 : this.debater2;
   }
 
   // TODO: Error catching: Make sure debateHistory isn't empty
-  private async advanceLlm(llm: LLM, next: DebateMessage) {
-    console.log("Advancing LLM: ", llm.model, " with prompt: ", next);
+  private async advance(debater: Debater, next: DebateMessage) {
+    console.log("Advancing LLM: ", debater.llmType, " with prompt: ", next);
     this.debateHistory.push(next);
     // prepare debate history into llm messages
     const llmMessages = prepDebateHistory(
       this.debateHistory,
-      llm.debaterId,
-      llm.responseRole
+      debater.debaterId,
+      debater.responseRole
     );
 
     // generate response
-    const responseContent = await llm.generateResponse(llmMessages);
-    const content = `Debater ${llm.debaterId}: '${responseContent}'`;
+    const responseContent = await debater.generateResponse(llmMessages);
+    const content = `Debater ${debater.debaterId}: '${responseContent}'`;
     // add response to debate history
     const newDebateMessage = {
-      debaterId: llm.debaterId,
-      title: `Debater ${llm.debaterId}`,
+      debaterId: debater.debaterId,
+      title: `Debater ${debater.debaterId}`,
       llmMessage: {
-        role: llmRoles.USER,
+        role: debater.responseRole,
         content,
       },
     };
@@ -72,11 +73,11 @@ export default class Debate {
 
     this.ws.send(JSON.stringify({ type: "startDebate", content: beginPrompt }));
 
-    await this.advanceLlm(this.currentDebater, {
+    await this.advance(this.currentDebater, {
       debaterId: 0,
       title: `Moderator`,
       llmMessage: {
-        role: llmRoles.USER,
+        role: LlmRoles.USER,
         content: beginPrompt,
       },
     });
@@ -85,17 +86,17 @@ export default class Debate {
 
   public async switchDebater() {
     this.currentDebater =
-      this.currentDebater === this.llm1 ? this.llm2 : this.llm1;
+      this.currentDebater === this.debater1 ? this.debater2 : this.debater1;
 
     const nextPrompt = `Moderator: 'We will now allow the other debater to respond.'`;
 
     this.ws.send(JSON.stringify({ type: "moderator", content: nextPrompt }));
 
-    await this.advanceLlm(this.currentDebater, {
+    await this.advance(this.currentDebater, {
       debaterId: 0,
       title: `Moderator`,
       llmMessage: {
-        role: llmRoles.USER,
+        role: LlmRoles.USER,
         content: nextPrompt,
       },
     });

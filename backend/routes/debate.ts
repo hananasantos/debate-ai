@@ -1,11 +1,8 @@
 import { WSRoute } from "../types/ws.types";
 import Debate from "../controllers/debate";
-import GPT from "../models/gpt";
-import Claude from "../models/claude";
-import Gemini from "../models/gemini";
-
-let llm1: GPT | Claude | Gemini;
-let llm2: GPT | Claude | Gemini;
+import Debater from "../agents/debater";
+let debater1: Debater;
+let debater2: Debater;
 let debate: Debate;
 
 const setup: WSRoute = async (ws, message) => {
@@ -14,40 +11,44 @@ const setup: WSRoute = async (ws, message) => {
 
   const topic = debateSetup.topic;
 
-  const llm1Setup = {
-    llm: debateSetup.llm1,
+  const debater1Setup = {
+    llmType: debateSetup.llm1,
     stance: debateSetup.llm1Stance,
     personality: debateSetup.llm1Personality,
   };
-  const llm2Setup = {
-    llm: debateSetup.llm2,
+  const debater2Setup = {
+    llmType: debateSetup.llm2,
     stance: debateSetup.llm2Stance,
     personality: debateSetup.llm2Personality,
   };
 
   try {
-    llm1 =
-      llm1Setup.llm === "gpt"
-        ? new GPT(llm1Setup.stance, llm1Setup.personality, topic, ws, 1)
-        : llm1Setup.llm === "gemini"
-        ? new Gemini(llm1Setup.stance, llm1Setup.personality, topic, ws, 1)
-        : new Claude(llm1Setup.stance, llm1Setup.personality, topic, ws, 1);
-    llm2 =
-      llm2Setup.llm === "gpt"
-        ? new GPT(llm2Setup.stance, llm2Setup.personality, topic, ws, 2)
-        : llm2Setup.llm === "gemini"
-        ? new Gemini(llm2Setup.stance, llm2Setup.personality, topic, ws, 2)
-        : new Claude(llm2Setup.stance, llm2Setup.personality, topic, ws, 2);
+    debater1 = new Debater(
+      debater1Setup.stance,
+      debater1Setup.personality,
+      topic,
+      1,
+      debater1Setup.llmType,
+      ws
+    );
+    debater2 = new Debater(
+      debater2Setup.stance,
+      debater2Setup.personality,
+      topic,
+      2,
+      debater2Setup.llmType,
+      ws
+    );
 
-    const llm1Send = {
-      model: llm1Setup.llm,
-      stance: llm1Setup.stance,
-      personality: llm1Setup.personality,
+    const debater1Send = {
+      model: debater1Setup.llmType,
+      stance: debater1Setup.stance,
+      personality: debater2Setup.personality,
     };
-    const llm2Send = {
-      model: llm2Setup.llm,
-      stance: llm2Setup.stance,
-      personality: llm2Setup.personality,
+    const debater2Send = {
+      model: debater2Setup.llmType,
+      stance: debater2Setup.stance,
+      personality: debater2Setup.personality,
     };
 
     ws.send(
@@ -56,8 +57,8 @@ const setup: WSRoute = async (ws, message) => {
         content: {
           status: 1,
           message: "successful setup!",
-          llm1: llm1Send,
-          llm2: llm2Send,
+          llm1: debater1Send,
+          llm2: debater2Send,
           topic: topic,
         },
       })
@@ -75,7 +76,7 @@ const setup: WSRoute = async (ws, message) => {
 const start: WSRoute = async (ws, message) => {
   const topic = message.content.topic;
   console.log("Starting debate with topic: ", topic);
-  debate = new Debate({ topic, llm1, llm2 }, ws);
+  debate = new Debate({ topic, debater1, debater2 }, ws);
   await debate.start();
 };
 

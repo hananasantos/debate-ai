@@ -137,7 +137,7 @@ export default class Anthropic extends LLM {
 
   async generateResponseStream(
     messages: LlmMessage[],
-    stopFlag: { activated: boolean },
+    // stopFlag: { activated: boolean },
     model?: AnthropicModels
   ) {
     if (!LLM.ws) {
@@ -169,10 +169,10 @@ export default class Anthropic extends LLM {
           })
         );
       }
-      if (stopFlag.activated) {
-        stopFlag.activated = false;
-        break;
-      }
+      // if (stopFlag.activated) {
+      //   stopFlag.activated = false;
+      //   break;
+      // }
     }
     return content;
   }

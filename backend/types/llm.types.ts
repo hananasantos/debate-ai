@@ -30,7 +30,7 @@ export abstract class LLM {
   ): Promise<any>;
   abstract generateResponseStream(
     messages: LlmMessage[],
-    stopFlag: { activated: boolean },
+    // stopFlag: { activated: boolean },
     model?: LlmModel
   ): Promise<string>;
 }

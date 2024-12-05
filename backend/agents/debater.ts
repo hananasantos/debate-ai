@@ -1,5 +1,5 @@
 // import Anthropic from "@anthropic-ai/sdk";
-import { LLM, LlmType } from "../types/llm.types";
+import { LLM, LlmType, LlmMessage, LlmRoles } from "../types/llm.types";
 import { WebSocket } from "ws";
 import Claude from "../models/claude";
 import GPT from "../models/gpt";
@@ -8,73 +8,62 @@ export default class Debater {
   //set llm client as an anthropic one
   //   private anthropicClient: Anthropic;
   private llm: LLM;
-  private ws: WebSocket;
   private systemPrompt: string;
+  public responseRole: LlmRoles;
 
   constructor(
     stance: string,
     personality: string,
     topic: string,
-    ws: WebSocket,
-    debaterId: number,
-    llmType: LlmType
+    public debaterId: number,
+    public llmType: LlmType,
+    private ws: WebSocket
   ) {
-    this.systemPrompt = "";
+    this.systemPrompt = `You are participating in a debate as Debater ${debaterId} and are not moderating.
+    The debate topic:
+    ${topic}
+
+    Your stance on this topic:
+    ${stance}
+
+    Your personality:
+    ${personality}
+    
+    Please keep your answers to plain text.
+    `;
+
     this.llm =
       llmType === "anthropic"
-        ? new Claude()
-        : new GPT(stance, personality, topic, ws, debaterId);
+        ? new Claude(this.systemPrompt, ws)
+        : new GPT(this.systemPrompt, ws);
+    this.responseRole = this.llm.responseRole;
     this.ws = ws;
   }
 
-  async generateResponse(messages: llmMessage[]) {
+  async generateResponse(messages: LlmMessage[]) {
     let content: string = "";
     console.log("Generating response with messages: ", messages);
-    let messagesWithAssistant: llmMessage[];
-    if (messages[0].role === llmRoles.USER) {
-      const firstMessage = messages[0].content + "\n\n" + this.systemPrompt;
-      // use the new combined first message
-      messagesWithAssistant = [
-        { role: llmRoles.USER, content: firstMessage },
-        ...messages.slice(1),
-      ];
-    } else {
-      messagesWithAssistant = [
-        { role: llmRoles.USER, content: this.systemPrompt },
-        ...messages,
-      ];
-    }
+    // let messagesWithAssistant: LlmMessage[];
+    // if (messages[0].role === LlmRoles.USER) {
+    //   const firstMessage = messages[0].content + "\n\n" + this.systemPrompt;
+    //   // use the new combined first message
+    //   messagesWithAssistant = [
+    //     { role: llmRoles.USER, content: firstMessage },
+    //     ...messages.slice(1),
+    //   ];
+    // } else {
+    //   messagesWithAssistant = [
+    //     { role: llmRoles.USER, content: this.systemPrompt },
+    //     ...messages,
+    //   ];
+    // }
     this.ws.send(
       JSON.stringify({
         type: "startStream",
         content: { debaterId: this.debaterId },
       })
     );
-    const stream = this.anthropicClient.messages
-      .stream({
-        max_tokens: 1024,
-        messages: messagesWithAssistant.map((message) => {
-          if (message.role === llmRoles.USER) {
-            return {
-              role: "user",
-              content: message.content,
-            };
-          } else if (message.role === llmRoles.ASSISTANT) {
-            return {
-              role: "assistant",
-              content: message.content,
-            };
-          } else {
-            throw new Error("Invalid role for Claude Message: " + message.role);
-          }
-        }),
-        model: "claude-3-opus-20240229",
-      })
-      .on("text", (text) => {
-        this.ws.send(JSON.stringify({ type: "answerStream", content: text }));
-        content += text;
-      });
-    const finalMessage = await stream.finalMessage();
+    const finalMessage = await this.llm.generateResponseStream(messages);
     this.ws.send(
       JSON.stringify({
         type: "endStream",

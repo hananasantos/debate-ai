@@ -1,4 +1,4 @@
-import { LLM, llmMessage, llmRoles } from "../types/llm.types";
+import { LLM, LlmMessage, LlmRoles } from "../types/llm.types";
 import { ChatSession, GenerativeModel } from "@google/generative-ai";
 import { WebSocket } from "ws";
 

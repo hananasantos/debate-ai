@@ -72,11 +72,6 @@ export enum LlmRoles {
   ASSISTANT = "assistant",
   // MODEL = "model",
 }
-export const DeepSearchModels = {
-  OPENAI: process.env.NODE_ENV === "development" ? "o1-mini" : "o1-preview",
-  ANTHROPIC: "claude-3-5-sonnet-20240620",
-  GOOGLEAI: "gemini-1.5-flash",
-} as const;
 
 export const OpenAiContextWindows: Record<
   (typeof validModels.openai)[number],

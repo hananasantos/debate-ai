@@ -1,17 +1,10 @@
 import AnthropicClient from "@anthropic-ai/sdk";
 import ws from "ws";
-import {
-  AnthropicModels,
-  DeepSearchModels,
-  LLM,
-  LlmMessage,
-  LlmRoles,
-} from "../types/llm.types";
+import { AnthropicModels, LLM, LlmMessage, LlmRoles } from "../types/llm.types";
 
 export default class Anthropic extends LLM {
   client = new AnthropicClient({ apiKey: process.env.ANTHROPIC_API_KEY });
   defaultModel = "claude-3-opus-20240229" as const;
-  deepSearchModel = DeepSearchModels.ANTHROPIC;
   responseRole = LlmRoles.ASSISTANT;
 
   constructor(systemPrompt: string, ws?: ws) {

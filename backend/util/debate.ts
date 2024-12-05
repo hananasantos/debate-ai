@@ -1,12 +1,12 @@
 import { DebateMessage } from "../types/debate.types";
-import { llmMessage, llmRoles } from "../types/llm.types";
+import { LlmMessage, LlmRoles } from "../types/llm.types";
 
 export function prepDebateHistory(
   debateHistory: DebateMessage[],
   debaterId: number,
-  responseRole: llmRoles
+  responseRole: LlmRoles
 ) {
-  let finalLlmMessages: llmMessage[] = [];
+  let finalLlmMessages: LlmMessage[] = [];
   let tempMessageContent = "";
 
   for (let i = 0; i < debateHistory.length; i++) {
@@ -14,7 +14,7 @@ export function prepDebateHistory(
     if (currentMessage.debaterId === debaterId) {
       if (tempMessageContent) {
         finalLlmMessages.push({
-          role: llmRoles.USER,
+          role: LlmRoles.USER,
           content: tempMessageContent,
         });
         console.log("Combined user messages: ", tempMessageContent);
@@ -33,7 +33,7 @@ export function prepDebateHistory(
   // Check if there's any leftover USER message content to add
   if (tempMessageContent) {
     finalLlmMessages.push({
-      role: llmRoles.USER,
+      role: LlmRoles.USER,
       content: tempMessageContent.trim(),
     });
   }

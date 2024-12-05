@@ -1,86 +1,95 @@
+import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { OpenAI } from "openai";
-import { Anthropic } from "@anthropic-ai/sdk";
-import { GoogleGenerativeAI, GenerativeModel } from "@google/generative-ai";
+import ws from "ws";
 
 export abstract class LLM {
-  protected client: OpenAI | Anthropic | GenerativeModel; // the llm client to make requests to
-  public model: string; // the model to use
-  public topic: string; // user-inputted topic for system prompt. Does this need to be here?
-  protected systemPrompt: string; // the system prompt to use for llm requests
-  public debaterId: number; // the debater id so the LLM knows which debater it is
-  public responseRole: llmRoles;
+  // TODO: Add Anthropic and GoogleGenerativeAI later
+  abstract client: OpenAI | Anthropic | GoogleGenerativeAI;
+  abstract defaultModel: OpenAiModels | AnthropicModels | GoogleAiModels;
+  abstract responseRole: LlmRoles;
+  static ws?: ws;
+  protected systemPrompt: string;
 
-  /* LLM constructor details:
-    - llmType for the type of llm client to use
-    - user-inputted debate stance for system prompt
-    - user-inputted personality for system prompt
-    - user-inputted debate topic for system prompt
-    - debaterId so the LLM knows which debater it is
-  */
-  constructor(
-    llmType: "gpt" | "claude" | "gemini",
-    stance: string,
-    personality: string,
-    topic: string,
-    debaterId: number
-  ) {
-    // create client
-    if (llmType === "gpt") {
-      this.client = new OpenAI();
-      this.model = "gpt";
-      this.responseRole = llmRoles.ASSISTANT;
-    } else if (llmType === "gemini") {
-      let apiKey = process.env.GOOGLE_API_KEY;
-      if (!apiKey) {
-        throw new Error("GOOGLE_API_KEY is not set");
-      }
-      let googleAi = new GoogleGenerativeAI(apiKey);
-      this.client = googleAi.getGenerativeModel({ model: "gemini-1.5-flash" });
-      this.model = "gemini";
-      this.responseRole = llmRoles.MODEL;
-    } else {
-      let apiKey = process.env.ANTHROPIC_API_KEY;
-      if (!apiKey) {
-        throw new Error("ANTHROPIC_API_KEY is not set");
-      }
-      this.client = new Anthropic({ apiKey });
-      this.model = "claude";
-      this.responseRole = llmRoles.ASSISTANT;
+  constructor(systemPrompt: string, ws?: ws) {
+    this.systemPrompt = systemPrompt;
+    if (ws) {
+      LLM.ws = ws;
     }
-
-    // setup system prompt
-    this.topic = topic;
-    this.debaterId = debaterId;
-    this.systemPrompt = `You are participating in a debate as Debater ${debaterId} and are not moderating.
-    The debate topic:
-    ${topic}
-
-    Your stance on this topic:
-    ${stance}
-
-    Your personality:
-    ${personality}
-    
-    Please keep your answers to plain text.
-    `;
   }
 
-  // specific llms have different chat apis so they must implement this
-  // it expects basic functionality: Given these LLM messages, return a string response
-  abstract generateResponse(messages: llmMessage[]): Promise<string>;
+  abstract generateResponse(
+    messages: LlmMessage[],
+    stopFlag: { activated: boolean },
+    model?: LlmModel
+  ): Promise<string>;
+  abstract generateJsonResponse(
+    messages: LlmMessage[],
+    stopFlag: { activated: boolean },
+    model?: LlmModel
+  ): Promise<any>;
+  abstract generateResponseStream(
+    messages: LlmMessage[],
+    stopFlag: { activated: boolean },
+    model?: LlmModel
+  ): Promise<string>;
 }
 
-// enum for the roles of the llm, helps with llm api typing
-export enum llmRoles {
+export const MAX_REASONING_TOKENS = 15000;
+
+export const validModels = {
+  openai: [
+    "o1-mini",
+    "o1-preview",
+    "gpt-4o",
+    "gpt-4",
+    "gpt-3.5-turbo",
+    "gpt-3.5-turbo-0125",
+  ] as const,
+  anthropic: ["claude-3-5-sonnet-20240620", "claude-3-opus-20240229"] as const,
+  googleai: ["gemini-1.5-flash"] as const,
+};
+
+export type LlmType = "openai" | "anthropic" | "googleAi";
+
+export type OpenAiModels =
+  | "o1-mini"
+  | "o1-preview"
+  | "gpt-4o"
+  | "gpt-4"
+  | "gpt-3.5-turbo"
+  | "gpt-3.5-turbo-0125";
+export type GoogleAiModels = "gemini-1.5-flash";
+export type AnthropicModels =
+  | "claude-3-5-sonnet-20240620"
+  | "claude-3-opus-20240229";
+
+export type LlmModel = OpenAiModels | AnthropicModels | GoogleAiModels;
+
+export enum LlmRoles {
   SYSTEM = "system",
   USER = "user",
   ASSISTANT = "assistant",
-  MODEL = "model",
+  // MODEL = "model",
 }
+export const DeepSearchModels = {
+  OPENAI: process.env.NODE_ENV === "development" ? "o1-mini" : "o1-preview",
+  ANTHROPIC: "claude-3-5-sonnet-20240620",
+  GOOGLEAI: "gemini-1.5-flash",
+} as const;
 
-// type for the messages of the llm, vs wsMessages, vs debateMessages
-// I don't want to think about what happens if a new llm we add uses a different message schema
-export type llmMessage = {
-  role: llmRoles;
+export const OpenAiContextWindows: Record<
+  (typeof validModels.openai)[number],
+  number
+> = {
+  "o1-mini": 128000,
+  "o1-preview": 128000,
+  "gpt-4o": 128000,
+  "gpt-4": 8192,
+  "gpt-3.5-turbo": 16385,
+  "gpt-3.5-turbo-0125": 16385,
+};
+export type LlmMessage = {
+  role: LlmRoles;
   content: string;
 };

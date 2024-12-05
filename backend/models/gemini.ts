@@ -1,42 +1,55 @@
-import { LLM, LlmMessage, LlmRoles } from "../types/llm.types";
-import { ChatSession, GenerativeModel } from "@google/generative-ai";
+import {
+  AnthropicModels,
+  LLM,
+  LlmMessage,
+  LlmRoles,
+  OpenAiModels,
+} from "../types/llm.types";
+import {
+  ChatSession,
+  GenerativeModel,
+  GoogleGenerativeAI,
+} from "@google/generative-ai";
 import { WebSocket } from "ws";
 
 export default class GEMINI extends LLM {
-  private geminiClient: GenerativeModel;
-  private ws: WebSocket;
+  client: GenerativeModel;
+  defaultModel = "gemini-1.5-flash" as const;
+  responseRole = LlmRoles.MODEL;
 
-  constructor(
-    stance: string,
-    personality: string,
-    topic: string,
-    ws: WebSocket,
-    debaterId: number
-  ) {
-    super("gemini", stance, personality, topic, debaterId);
-    this.geminiClient = this.client as GenerativeModel;
-    this.ws = ws;
+  constructor(systemPrompt: string, ws: WebSocket) {
+    super(systemPrompt, ws);
+    let apiKey = process.env.GOOGLE_API_KEY;
+    if (!apiKey) {
+      throw new Error("GOOGLE_API_KEY is not set");
+    }
+    let googleAi = new GoogleGenerativeAI(apiKey);
+    this.client = googleAi.getGenerativeModel({ model: "gemini-1.5-flash" });
   }
 
-  private prepHistory(messages: llmMessage[]) {
+  private prepHistory(messages: LlmMessage[]) {
     return messages.map((message) => ({
       role: message.role,
       parts: [{ text: message.content }],
     }));
   }
 
-  async generateResponse(messages: llmMessage[]): Promise<string> {
-    let messagesWithSystem: llmMessage[];
-    if (messages[0].role === llmRoles.USER) {
+  async generateResponseStream(messages: LlmMessage[]): Promise<string> {
+    if (!LLM.ws) {
+      console.error("This LLM was not instantiated with a websocket");
+      return "";
+    }
+    let messagesWithSystem: LlmMessage[];
+    if (messages[0].role === LlmRoles.USER) {
       const firstMessage = this.systemPrompt + "\n\n" + messages[0].content;
       // use the new combined first message
       messagesWithSystem = [
-        { role: llmRoles.USER, content: firstMessage },
+        { role: LlmRoles.USER, content: firstMessage },
         ...messages.slice(1),
       ];
     } else {
       messagesWithSystem = [
-        { role: llmRoles.USER, content: this.systemPrompt },
+        { role: LlmRoles.USER, content: this.systemPrompt },
         ...messages,
       ];
     }
@@ -48,21 +61,15 @@ export default class GEMINI extends LLM {
     console.log("New message received by Gemini: ", newMessage);
     let response = "";
     try {
-      const geminiChat = this.geminiClient.startChat({
+      const geminiChat = this.client.startChat({
         history: previousHistory,
       });
-      this.ws.send(
-        JSON.stringify({
-          type: "startStream",
-          content: { debaterId: this.debaterId },
-        })
-      );
       const geminiResponse = await geminiChat.sendMessageStream(
         newMessage.content
       );
       for await (const chunk of geminiResponse.stream) {
         const text = chunk.text();
-        this.ws.send(
+        LLM.ws.send(
           JSON.stringify({
             type: "answerStream",
             content: text,
@@ -70,20 +77,9 @@ export default class GEMINI extends LLM {
         );
         response += text;
       }
-      this.ws.send(
-        JSON.stringify({
-          type: "endStream",
-          content: { debaterId: this.debaterId },
-        })
-      );
     } catch (error) {
       console.error(error);
-      this.ws.send(
-        JSON.stringify({
-          type: "endStream",
-          content: { debaterId: this.debaterId },
-        })
-      );
+      throw new Error("Error generating response with Gemini");
     }
     return response;
   }

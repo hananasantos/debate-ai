@@ -156,9 +156,7 @@ export default class Anthropic extends LLM {
         LLM.ws.send(
           JSON.stringify({
             type: "answerStream",
-            payload: {
-              chunk: chunkText,
-            },
+            content: chunkText,
           })
         );
       }

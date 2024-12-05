@@ -71,6 +71,6 @@ export default class Debater {
       })
     );
     console.log(finalMessage);
-    return content;
+    return finalMessage;
   }
 }

@@ -1,11 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GenerativeModel } from "@google/generative-ai";
 import { OpenAI } from "openai";
 import ws from "ws";
 
 export abstract class LLM {
   // TODO: Add Anthropic and GoogleGenerativeAI later
-  abstract client: OpenAI | Anthropic | GoogleGenerativeAI;
+  abstract client: OpenAI | Anthropic | GenerativeModel;
   abstract defaultModel: OpenAiModels | AnthropicModels | GoogleAiModels;
   abstract responseRole: LlmRoles;
   static ws?: ws;
@@ -18,16 +18,16 @@ export abstract class LLM {
     }
   }
 
-  abstract generateResponse(
-    messages: LlmMessage[],
-    stopFlag: { activated: boolean },
-    model?: LlmModel
-  ): Promise<string>;
-  abstract generateJsonResponse(
-    messages: LlmMessage[],
-    stopFlag: { activated: boolean },
-    model?: LlmModel
-  ): Promise<any>;
+  // abstract generateResponse(
+  //   messages: LlmMessage[],
+  //   stopFlag: { activated: boolean },
+  //   model?: LlmModel
+  // ): Promise<string>;
+  // abstract generateJsonResponse(
+  //   messages: LlmMessage[],
+  //   stopFlag: { activated: boolean },
+  //   model?: LlmModel
+  // ): Promise<any>;
   abstract generateResponseStream(
     messages: LlmMessage[],
     // stopFlag: { activated: boolean },
@@ -70,7 +70,7 @@ export enum LlmRoles {
   SYSTEM = "system",
   USER = "user",
   ASSISTANT = "assistant",
-  // MODEL = "model",
+  MODEL = "model",
 }
 
 export const OpenAiContextWindows: Record<

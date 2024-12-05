@@ -41,15 +41,23 @@ export default class OpenAi extends LLM {
         // o1-mini and o1-preview do not support the system role
         if (model === "o1-mini" || model === "o1-preview") {
           return {
-            role: LlmRoles.ASSISTANT,
+            role: LlmRoles.ASSISTANT as const,
             content: message.content,
           };
         } else {
           return {
-            role: LlmRoles.SYSTEM,
+            role: LlmRoles.SYSTEM as const,
             content: message.content,
           };
         }
+      }
+      // TODO: I think this would be better in a gemini implementation
+      else if (message.role === LlmRoles.MODEL) {
+        // the model role is gemini's version of the assistant role
+        return {
+          role: LlmRoles.ASSISTANT as const,
+          content: message.content,
+        };
       } else {
         throw new Error(`Invalid role for GPT Message: ${message.role}`);
       }
@@ -159,9 +167,7 @@ export default class OpenAi extends LLM {
         LLM.ws.send(
           JSON.stringify({
             type: "answerStream",
-            payload: {
-              chunk: chunkContent,
-            },
+            content: chunkContent,
           })
         );
       }
